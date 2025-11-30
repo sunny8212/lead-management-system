@@ -1,0 +1,234 @@
+{
+  "name": "Lead Management - Main Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lead-webhook",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-node",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "dataPropertyName": "data",
+        "options": {}
+      },
+      "id": "switch-node",
+      "name": "Switch by Category",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [450, 300],
+      "parameters": {
+        "rules": {
+          "rules": [
+            {
+              "operation": "equal",
+              "value1": "={{$json[\"category\"]}}",
+              "value2": "hot"
+            },
+            {
+              "operation": "equal",
+              "value1": "={{$json[\"category\"]}}",
+              "value2": "warm"
+            },
+            {
+              "operation": "equal",
+              "value1": "={{$json[\"category\"]}}",
+              "value2": "cold"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "sendTo": "={{$json[\"email\"]}}",
+        "subject": "Let's Get Started, {{$json[\"name\"]}}! 🔥",
+        "emailType": "html",
+        "message": "<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;\">\n  <h2 style=\"color: #ff4444;\">Welcome to Our Automation Journey!</h2>\n  \n  <p>Hi {{$json[\"name\"]}},</p>\n  \n  <p>Thank you for reaching out! We're excited to help {{$json[\"company\"]}} streamline operations and boost productivity through automation.</p>\n  \n  <p><strong>We noticed you're ready to get started immediately - that's fantastic!</strong></p>\n  \n  <p>Let's schedule a call at your earliest convenience to discuss:</p>\n  <ul>\n    <li>Your specific automation needs</li>\n    <li>Current pain points and challenges</li>\n    <li>Custom solutions tailored for {{$json[\"company\"]}}</li>\n    <li>Timeline and implementation roadmap</li>\n  </ul>\n  \n  <p style=\"background: #f0f0f0; padding: 15px; border-left: 4px solid #ff4444;\">\n    <strong>📅 Book Your Strategy Call:</strong><br/>\n    Reply to this email with your preferred time, or call us directly!\n  </p>\n  \n  <p><strong>Your Lead Score: {{$json[\"score\"]}}/100</strong></p>\n  \n  <p>Looking forward to transforming {{$json[\"company\"]}}\"'s workflow!</p>\n  \n  <p>Best regards,<br/>\n  Your Automation Team</p>\n</div>",
+        "options": {}
+      },
+      "id": "hot-email-node",
+      "name": "Send Hot Lead Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [650, 150],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "1",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "calendar": "primary",
+        "start": "={{$now.plus({days: 1}).toISO()}}",
+        "end": "={{$now.plus({days: 1, hours: 1}).toISO()}}",
+        "summary": "Strategy Call - {{$json[\"company\"]}}",
+        "description": "Initial consultation with {{$json[\"name\"]}} from {{$json[\"company\"]}}\n\nLead Score: {{$json[\"score\"]}}\nBudget: ${{$json[\"budget\"]}}\nTimeline: {{$json[\"timeline\"]}}\n\nPain Points: {{$json[\"painPointsText\"]}}\nAutomation Needs: {{$json[\"automationNeedsText\"]}}",
+        "attendees": "={{$json[\"email\"]}}",
+        "sendUpdates": "all",
+        "options": {}
+      },
+      "id": "calendar-node",
+      "name": "Create Calendar Event",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1,
+      "position": [850, 150],
+      "credentials": {
+        "googleCalendarOAuth2": {
+          "id": "2",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "sendTo": "={{$json[\"email\"]}}",
+        "subject": "Great to Connect, {{$json[\"name\"]}}! Here's What We Can Do",
+        "emailType": "html",
+        "message": "<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;\">\n  <h2 style=\"color: #ff9944;\">Welcome! Let's Explore Automation Together</h2>\n  \n  <p>Hi {{$json[\"name\"]}},</p>\n  \n  <p>Thank you for your interest in automating {{$json[\"company\"]}}\"'s processes! We're here to help you work smarter, not harder.</p>\n  \n  <h3 style=\"color: #ff9944;\">Why Companies Choose Us:</h3>\n  \n  <div style=\"background: #f9f9f9; padding: 15px; margin: 15px 0; border-radius: 5px;\">\n    <h4>🎯 Success Story: TechCorp Inc.</h4>\n    <p><em>\"Reduced manual data entry by 85% and saved 20 hours per week. ROI achieved in just 2 months!\"</em></p>\n    <p>- Sarah Johnson, Operations Manager</p>\n  </div>\n  \n  <div style=\"background: #f9f9f9; padding: 15px; margin: 15px 0; border-radius: 5px;\">\n    <h4>🚀 Success Story: GrowthHub</h4>\n    <p><em>\"Automated our entire lead nurturing process. Conversion rates increased by 40%!\"</em></p>\n    <p>- Mike Chen, CEO</p>\n  </div>\n  \n  <p><strong>Your Lead Score: {{$json[\"score\"]}}/100</strong></p>\n  \n  <p>Ready to see similar results for {{$json[\"company\"]}}? Let's schedule a discovery call!</p>\n  \n  <p>Best regards,<br/>\n  Your Automation Team</p>\n</div>",
+        "options": {}
+      },
+      "id": "warm-email-node",
+      "name": "Send Warm Lead Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [650, 300],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "1",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "sendTo": "={{$json[\"email\"]}}",
+        "subject": "Welcome {{$json[\"name\"]}}! Discover Automation for {{$json[\"company\"]}}",
+        "emailType": "html",
+        "message": "<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;\">\n  <h2 style=\"color: #4444ff;\">Welcome to the Future of Work!</h2>\n  \n  <p>Hi {{$json[\"name\"]}},</p>\n  \n  <p>Thank you for your interest in automation solutions for {{$json[\"company\"]}}. We're excited to share how we can help you work more efficiently!</p>\n  \n  <h3 style=\"color: #4444ff;\">What We Do:</h3>\n  <p>We specialize in creating custom automation solutions that eliminate repetitive tasks, reduce errors, and free up your team to focus on what matters most.</p>\n  \n  <h3 style=\"color: #4444ff;\">Recent Success Stories:</h3>\n  \n  <div style=\"background: #f0f4ff; padding: 15px; margin: 15px 0; border-radius: 5px;\">\n    <h4>📊 Case Study: E-Commerce Automation</h4>\n    <p>Automated inventory management, order processing, and customer communications.</p>\n    <p><strong>Results:</strong> 75% reduction in processing time, 95% fewer errors</p>\n  </div>\n  \n  <div style=\"background: #f0f4ff; padding: 15px; margin: 15px 0; border-radius: 5px;\">\n    <h4>🏢 Case Study: HR Process Automation</h4>\n    <p>Streamlined onboarding, payroll, and leave management.</p>\n    <p><strong>Results:</strong> Saved 30 hours/week, improved satisfaction by 45%</p>\n  </div>\n  \n  <h3 style=\"color: #4444ff;\">Our Approach:</h3>\n  <ul>\n    <li>✅ Free consultation to understand your needs</li>\n    <li>✅ Custom solution design tailored to your business</li>\n    <li>✅ Seamless integration with your existing tools</li>\n    <li>✅ Ongoing support and optimization</li>\n  </ul>\n  \n  <p><strong>Your Lead Score: {{$json[\"score\"]}}/100</strong></p>\n  \n  <p>We'll be sharing more insights and success stories with you. Feel free to reach out anytime!</p>\n  \n  <p>Best regards,<br/>\n  Your Automation Team</p>\n</div>",
+        "options": {}
+      },
+      "id": "cold-email-node",
+      "name": "Send Cold Lead Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [650, 450],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "1",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"message\": \"Lead processed successfully\", \"category\": $json[\"category\"] } }}",
+        "options": {}
+      },
+      "id": "response-node",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [850, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Switch by Category",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch by Category": {
+      "main": [
+        [
+          {
+            "node": "Send Hot Lead Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Warm Lead Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Cold Lead Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Hot Lead Email": {
+      "main": [
+        [
+          {
+            "node": "Create Calendar Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Calendar Event": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Warm Lead Email": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Cold Lead Email": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
