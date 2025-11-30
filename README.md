@@ -1,6 +1,6 @@
 # Lead Management System 🚀
 
-A comprehensive lead management system with automated scoring, categorization, and workflow automation. Built with Next.js, MongoDB, and integrated with Gmail and Google Calendar.
+A comprehensive lead management system with automated scoring, categorization, and workflow automation using n8n. Built with Next.js, MongoDB, and n8n for visual workflow automation.
 
 ## Features ✨
 
@@ -17,34 +17,18 @@ A comprehensive lead management system with automated scoring, categorization, a
 ### Intelligent Lead Scoring
 Automatic scoring based on:
 - **Budget** (max 40 points)
-  - $10K+: 40 pts
-  - $5K-$10K: 30 pts
-  - $2K-$5K: 20 pts
-  - <$2K: 10 pts
-
 - **Timeline** (max 30 points)
-  - Immediate: 30 pts
-  - 1-3 months: 20 pts
-  - 3-6 months: 10 pts
-  - 6+ months: 5 pts
-
 - **Company Size** (max 15 points)
-  - 100+ employees: 15 pts
-  - 50-100: 10 pts
-  - 10-50: 5 pts
-  - <10: 2 pts
-
 - **Pain Points & Needs** (max 15 points)
-  - Multiple specific items + detailed text: 15 pts
-  - Few items: 8 pts
-  - Vague: 3 pts
 
 ### Lead Categories
 - **🔥 Hot Lead** (70+ points): Immediate action, calendar invite sent
 - **☀️ Warm Lead** (40-69 points): Testimonials and case studies
 - **❄️ Cold Lead** (<40 points): Educational content and nurturing
 
-### Automated Workflows
+### Automated Workflows with n8n
+
+All email and calendar automation is handled by n8n workflows:
 
 #### Hot Leads (Score 70+)
 - ✅ Instant welcome email with meeting booking link
@@ -74,8 +58,7 @@ Automatic scoring based on:
 - **Frontend**: Next.js 14, React, TypeScript, Tailwind CSS
 - **Backend**: Next.js API Routes (Serverless)
 - **Database**: MongoDB Atlas (Free Tier - 512MB)
-- **Email**: Gmail API with OAuth2
-- **Calendar**: Google Calendar API
+- **Workflow Automation**: n8n (Cloud or Self-hosted)
 - **Hosting**: Vercel (Free Tier)
 
 ## Setup Instructions 🛠️
@@ -98,30 +81,34 @@ npm install
 4. Whitelist your IP (or use 0.0.0.0/0 for development)
 5. Get your connection string
 
-### 4. Set Up Gmail API
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project
-3. Enable Gmail API and Google Calendar API
-4. Create OAuth 2.0 credentials
-5. Add authorized redirect URI: `https://developers.google.com/oauthplayground`
-6. Go to [OAuth Playground](https://developers.google.com/oauthplayground)
-7. Select Gmail API v1 and Calendar API v3 scopes
-8. Authorize and get refresh token
+### 4. Set Up n8n
 
-### 5. Configure Environment Variables
+**Option A: n8n Cloud (Recommended for beginners)**
+1. Sign up at [n8n.io/cloud](https://n8n.io/cloud)
+2. Free tier available with 5,000 workflow executions/month
+
+**Option B: Self-hosted**
+\`\`\`bash
+npm install -g n8n
+n8n start
+\`\`\`
+
+### 5. Import n8n Workflow
+1. Open n8n dashboard
+2. Click "Workflows" → "Import from File"
+3. Import `n8n-workflows/lead-workflow-main.json`
+4. Configure Gmail and Google Calendar credentials in n8n
+5. Activate the workflow
+6. Copy the webhook URL from the Webhook node
+
+### 6. Configure Environment Variables
 Create a `.env.local` file:
 \`\`\`env
 # MongoDB
 MONGODB_URI=your_mongodb_atlas_connection_string
 
-# Gmail API
-GMAIL_USER=your_email@gmail.com
-GMAIL_CLIENT_ID=your_gmail_client_id
-GMAIL_CLIENT_SECRET=your_gmail_client_secret
-GMAIL_REFRESH_TOKEN=your_gmail_refresh_token
-
-# Google Calendar API
-GOOGLE_CALENDAR_ID=primary
+# n8n Webhook
+N8N_WEBHOOK_URL=your_n8n_webhook_url
 
 # Admin Dashboard
 ADMIN_PASSWORD=your_secure_password
@@ -130,7 +117,7 @@ ADMIN_PASSWORD=your_secure_password
 NEXT_PUBLIC_BASE_URL=http://localhost:3000
 \`\`\`
 
-### 6. Run Development Server
+### 7. Run Development Server
 \`\`\`bash
 npm run dev
 \`\`\`
@@ -139,11 +126,32 @@ Visit:
 - Client form: `http://localhost:3000`
 - Admin dashboard: `http://localhost:3000/admin`
 
-### 7. Deploy to Vercel
+### 8. Deploy to Vercel
 1. Push code to GitHub
 2. Import project in [Vercel](https://vercel.com)
 3. Add environment variables
 4. Deploy!
+
+## n8n Workflow Setup 📧
+
+### Configure Gmail in n8n:
+1. In n8n, go to "Credentials"
+2. Add "Gmail OAuth2" credential
+3. Follow n8n's built-in OAuth setup
+4. Authorize your Gmail account
+
+### Configure Google Calendar in n8n:
+1. In n8n, go to "Credentials"
+2. Add "Google Calendar OAuth2" credential
+3. Follow n8n's built-in OAuth setup
+4. Authorize your Google account
+
+### Customize Email Templates:
+1. Open the workflow in n8n
+2. Click on any "Send Email" node
+3. Edit the HTML template directly
+4. Use variables like `{{$json["name"]}}`, `{{$json["company"]}}`, etc.
+5. Save and test!
 
 ## Usage 📖
 
@@ -159,104 +167,107 @@ Visit:
 3. View all leads with filtering and sorting
 4. Click "View Details" for complete lead information
 
+### For Workflow Management
+1. Open n8n dashboard
+2. View execution history
+3. Modify email templates visually
+4. Add new automation steps without coding
+
 ## Project Structure 📁
 
 \`\`\`
 lead-management-system/
 ├── lib/
 │   ├── mongodb.ts           # MongoDB connection
-│   ├── leadScoring.ts       # Scoring logic
-│   └── emailTemplates.ts    # Email templates
+│   └── leadScoring.ts       # Scoring logic
 ├── pages/
 │   ├── api/
-│   │   ├── submit-lead.ts   # Lead submission endpoint
+│   │   ├── submit-lead.ts   # Lead submission + n8n trigger
 │   │   └── leads.ts         # Fetch leads endpoint
 │   ├── _app.tsx
 │   ├── index.tsx            # Client intake form
 │   └── admin.tsx            # Admin dashboard
+├── n8n-workflows/
+│   ├── README.md            # n8n setup guide
+│   └── lead-workflow-main.json  # Workflow template
 ├── styles/
 │   └── globals.css
 ├── package.json
-├── tsconfig.json
-├── tailwind.config.js
-└── next.config.js
+└── README.md
 \`\`\`
 
 ## API Endpoints 🔌
 
 ### POST /api/submit-lead
-Submit a new lead with automatic scoring and workflow trigger.
-
-**Request Body:**
-\`\`\`json
-{
-  "name": "John Doe",
-  "email": "john@example.com",
-  "phone": "+1234567890",
-  "company": "Acme Inc",
-  "industry": "Technology",
-  "companySize": "50",
-  "painPoints": ["Manual data entry", "Repetitive tasks"],
-  "painPointsText": "Detailed description...",
-  "automationNeeds": ["Email automation", "Data processing"],
-  "automationNeedsText": "Detailed description...",
-  "currentHassles": "Current challenges...",
-  "currentTools": "Excel, Salesforce",
-  "budget": 10000,
-  "timeline": "immediate",
-  "spendingCapacity": 10000
-}
-\`\`\`
-
-**Response:**
-\`\`\`json
-{
-  "success": true,
-  "leadId": "...",
-  "score": 85,
-  "category": "hot"
-}
-\`\`\`
+Submit a new lead with automatic scoring and n8n workflow trigger.
 
 ### GET /api/leads
 Fetch all leads with filtering (requires admin password).
 
-**Query Parameters:**
-- `password`: Admin password (required)
-- `category`: Filter by category (optional: all, hot, warm, cold)
-- `sortBy`: Sort field (optional: createdAt, score)
-- `order`: Sort order (optional: asc, desc)
+## Advantages of n8n Integration 🎯
 
-## Customization 🎨
+### Visual Workflow Editor
+- No coding required for email changes
+- Drag-and-drop interface
+- Real-time testing
 
-### Modify Scoring Logic
-Edit `lib/leadScoring.ts` to adjust point allocations.
+### Easy Customization
+- Modify email templates in minutes
+- Add new automation steps visually
+- A/B test different approaches
 
-### Customize Email Templates
-Edit `lib/emailTemplates.ts` to change email content for each category.
+### Powerful Integrations
+- 400+ pre-built integrations
+- Connect to Slack, CRM, databases
+- Custom HTTP requests
 
-### Add More Form Fields
-1. Update `LeadData` interface in `lib/leadScoring.ts`
-2. Add fields to form in `pages/index.tsx`
-3. Update scoring logic if needed
+### Execution History
+- See every workflow run
+- Debug issues easily
+- Track email delivery
 
 ## Free Tier Limits 📊
 
 - **MongoDB Atlas**: 512MB storage, shared cluster
 - **Vercel**: 100GB bandwidth/month, unlimited deployments
-- **Gmail API**: 1 billion quota units/day (plenty for most use cases)
-- **Google Calendar API**: 1 million requests/day
+- **n8n Cloud**: 5,000 workflow executions/month
+- **n8n Self-hosted**: Unlimited (requires hosting)
 
-## Security 🔒
+## Customization Examples 🎨
 
-- Admin dashboard protected by password
-- Environment variables for sensitive data
-- MongoDB connection with authentication
-- OAuth2 for Gmail and Calendar APIs
+### Add Slack Notification for Hot Leads:
+1. Open workflow in n8n
+2. Add "Slack" node after hot lead email
+3. Configure Slack credentials
+4. Send message to #sales channel
+
+### Add Follow-up Sequence:
+1. Add "Wait" node (e.g., 3 days)
+2. Add another "Send Email" node
+3. Create follow-up email template
+
+### Add CRM Integration:
+1. Add "HTTP Request" node
+2. Configure your CRM API
+3. Sync lead data automatically
+
+## Troubleshooting 🔧
+
+### Webhook not triggering:
+- Check N8N_WEBHOOK_URL in Vercel
+- Ensure workflow is activated in n8n
+- Check n8n execution history
+
+### Emails not sending:
+- Verify Gmail credentials in n8n
+- Check Gmail API quotas
+- Review spam folder
 
 ## Support 💬
 
-For issues or questions, please open an issue on GitHub.
+- **n8n Documentation**: https://docs.n8n.io
+- **n8n Community**: https://community.n8n.io
+- **GitHub Issues**: For project-specific questions
 
 ## License 📄
 
@@ -264,4 +275,4 @@ MIT License - feel free to use this for your projects!
 
 ---
 
-Built with ❤️ using Next.js, MongoDB, and Google APIs
+Built with ❤️ using Next.js, MongoDB, and n8n
